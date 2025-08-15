@@ -1,0 +1,9 @@
+.responsive-border {
+    border-right: 1px solid #ccc;
+}
+@media (max-width: 767.98px) {
+    .responsive-border {
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+    }
+}
