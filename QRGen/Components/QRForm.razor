@@ -1,0 +1,86 @@
+@using QRGen.Services
+@inject IJSRuntime Js
+@inject IHostnameProvider HostnameProvider
+
+<div class="card align-content-center">
+    <div class="row g-0">
+        <div class="col-md-7 bg-light responsive-border">
+            <div class="card-body">
+                <h2>
+                    <span class="badge text-bg-secondary">1</span> <span>Enter your Website</span>
+                </h2>
+                <input placeholder="https://" name="website" class="form-control" type="text" @bind="@_website"/>
+                <hr/>
+                <h2>
+                    <span class="badge text-bg-secondary">2</span> <span>Upload your image (optional)</span>
+                </h2>
+                <InputFile class="form-control" accept="image/*" OnChange="OnImageUpload"/>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card-body">
+                <div class="row">
+                    <h2>
+                        <span class="badge text-bg-secondary">3</span> <span>Download your QR Code</span>
+                    </h2>
+                </div>
+                <div class="row mt-2 mb-2">
+                    <div class="card col-md-6 offset-md-3 pt-2 pb-2" style="text-align:center;">
+                        <QRCode
+                            @ref="_qrCodeRef"
+                            Id="qrcode"
+                            Data="@(_website ?? $"https://{HostnameProvider.Hostname}")"
+                            Image="@_image"
+                            ErrorCorrection="ErrorCorrection.High"/>
+                    </div>
+                </div>
+                <div class="row" style="min-width: 331px;">
+                    <div class="col-md-12">
+                        <div class="input-group" role="group" aria-label="Basic example">
+                            <div class="input-group-text">Download QR Code</div>
+                            <button type="button" class="btn btn-primary" @onclick="@(() => DownloadQrCode("svg"))">
+                                <i class="fa fa-download"></i> SVG
+                            </button>
+                            <button type="button" class="btn btn-primary" @onclick="@(() => DownloadQrCode("png"))">
+                                <i class="fa fa-download"></i> PNG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? _website;
+    private string? _image;
+    private QRCode? _qrCodeRef;
+    
+    private async Task OnImageUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        await using var stream = file.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        _image = $"data:image/png;base64, {Convert.ToBase64String(ms.ToArray())}";
+    }
+
+    private async Task DownloadQrCode(string format)
+    {
+        if (_qrCodeRef is null)
+        {
+            return;
+        }
+
+        var svg = await Js.InvokeAsync<string>("getSvgFromElement", "qrcode");
+
+        var task = format switch
+        {
+            "svg" => Js.InvokeVoidAsync("downloadFile", "qrcode.svg", svg, "image/svg+xml"),
+            _ => Js.InvokeVoidAsync("downloadSvgAsPng", svg, "qrcode.png")
+        };
+
+        await task;
+    }
+}
