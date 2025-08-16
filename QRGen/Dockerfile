@@ -2,12 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet publish QRGen.csproj -c Release -o /app/publish
+RUN dotnet publish QRGen/QRGen.csproj -c Release -o /app/publish
 
-# Use the official ASP.NET runtime image for runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
-WORKDIR /app
-COPY --from=build /app/publish .
+# Use nginx to serve static files
+FROM nginx:alpine AS final
+COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
 EXPOSE 80
-ENV ASPNETCORE_URLS=http://+:80
-ENTRYPOINT ["dotnet", "QRGen.dll"]
+CMD ["nginx", "-g", "daemon off;"]
