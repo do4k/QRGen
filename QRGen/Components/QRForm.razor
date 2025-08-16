@@ -25,13 +25,17 @@
                     </h2>
                 </div>
                 <div class="row mt-2 mb-2">
-                    <div class="card col-md-6 offset-md-3 pt-2 pb-2" style="text-align:center;">
-                        <QRCode
-                            @ref="_qrCodeRef"
-                            Id="qrcode"
-                            Data="@(_website ?? $"https://{HostnameProvider.Hostname}")"
-                            Image="@_image"
-                            ErrorCorrection="ErrorCorrection.High"/>
+                    <div class="col-md-12 pt-2 pb-2 d-flex flex-column" style="text-align:center;">
+                        <div class="card">
+                            <div class="card-body">
+                                <QRCode
+                                    @ref="_qrCodeRef"
+                                    Id="qrcode"
+                                    Data="@(_website ?? $"https://{HostnameProvider.Hostname}")"
+                                    Image="@_image"
+                                    ErrorCorrection="ErrorCorrection.High"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="row" style="min-width: 331px;">
